@@ -2,7 +2,7 @@
 /// Empty Project for SFML[2.5.0]
 /// 
 /// 
-/// @author Peter Lowe
+/// Author: Michal Krzyzanowski
 /// @date May 2018
 /// </summary>
 
