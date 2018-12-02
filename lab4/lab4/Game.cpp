@@ -14,6 +14,12 @@ Game::Game() :
 {
 	setupFontAndText(); // load font 
 	setupSprite(); // load texture
+	setUpScene(m_ground, sf::Vector2f{ 0, 500 }, sf::Vector2f{ 800, 100 }); // set up ground rectangle
+	m_ground.setFillColor(sf::Color(2, 99, 20)); // dark green color
+	setUpScene(m_base, sf::Vector2f{ 360, 440 }, sf::Vector2f{ 80, 60 }); // set up ground rectangle
+	m_base.setFillColor(sf::Color(219, 199, 52)); // golden color
+	setUpScene(m_powerBar, sf::Vector2f{ 10, 530 }, sf::Vector2f{ 200, 30 }); // set up power bar
+	m_powerBar.setFillColor(sf::Color(188, 5, 5)); // red color
 }
 
 /// <summary>
@@ -53,19 +59,25 @@ void Game::run()
 /// </summary>
 void Game::processEvents()
 {
-	sf::Event event;
-	while (m_window.pollEvent(event))
+	sf::Event nextEvent;
+	while (m_window.pollEvent(nextEvent))
 	{
-		if (sf::Event::Closed == event.type) // window message
+		if (sf::Event::Closed == nextEvent.type) // window message
 		{
 			m_window.close();
 		}
-		if (sf::Event::KeyPressed == event.type) //user key press
+
+		if (sf::Event::KeyPressed == nextEvent.type) //user key press
 		{
-			if (sf::Keyboard::Escape == event.key.code)
+			if (sf::Keyboard::Escape == nextEvent.key.code)
 			{
 				m_exitGame = true;
 			}
+		}
+
+		if (sf::Event::MouseButtonPressed == nextEvent.type)
+		{
+			processMouseEvents(nextEvent);
 		}
 	}
 }
@@ -80,16 +92,62 @@ void Game::update(sf::Time t_deltaTime)
 	{
 		m_window.close();
 	}
+
+	AsteroidProperties();
+}
+
+void Game::processMouseEvents(sf::Event t_mouseEvents)
+{
+	sf::Vertex lineStart{ sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2), m_base.getPosition().y} };
+	sf::Vertex lineEnd{};
+	sf::Vector2i mouseClick{};
+
+	m_laser.clear();
+
+	if (sf::Mouse::Left == t_mouseEvents.mouseButton.button)
+	{
+		mouseClick = sf::Mouse::getPosition(m_window);
+		m_laserDestination = sf::Vector2f(static_cast<float>(mouseClick.x), static_cast<float>(mouseClick.y));
+		lineEnd.position = m_laserDestination;
+	}
+
+	else
+	{
+		m_laser.clear();
+	}
+
+	m_laser.append(lineStart);
+	m_laser.append(lineEnd);
+}
+
+void Game::AsteroidProperties()
+{
+	sf::Vertex asteroidStart{};
+	sf::Vertex asteroidEnd{};
+	sf::Vector2f startPoint{200, 200};
+	sf::Vector2f endPoint{500, 500};
+
+	asteroidStart.position = startPoint;
+	asteroidEnd.position = endPoint;
+
+	m_asteroid.append(asteroidStart);
+	m_asteroid.append(asteroidEnd);
 }
 
 /// <summary>
-/// draw the frame and then switch bufers
+/// draw the frame and then switch buffers
 /// </summary>
 void Game::render()
 {
-	m_window.clear(sf::Color::White);
-	m_window.draw(m_welcomeMessage);
-	m_window.draw(m_logoSprite);
+	m_window.clear();
+	//m_window.draw(m_welcomeMessage);
+	//m_window.draw(m_logoSprite);
+	m_window.draw(m_ground);
+	m_window.draw(m_base);
+	m_window.draw(m_laser);
+	m_window.draw(m_asteroid);
+	m_window.draw(m_powerBar);
+
 	m_window.display();
 }
 
@@ -125,4 +183,10 @@ void Game::setupSprite()
 	}
 	m_logoSprite.setTexture(m_logoTexture);
 	m_logoSprite.setPosition(300.0f, 180.0f);
+}
+
+void Game::setUpScene(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size)
+{
+	t_rectangle.setPosition(t_position);
+	t_rectangle.setSize(t_size);
 }
