@@ -16,6 +16,7 @@ private:
 	void processEvents();
 	void update(sf::Time t_deltaTime);
 	void processMouseEvents(sf::Event t_mouseEvent);
+	void animateLaser();
 	void AsteroidProperties();
 	void render();
 
@@ -36,9 +37,23 @@ private:
 	bool m_exitGame; // control exiting game
 
 	sf::VertexArray m_laser{ sf::Lines };
-	sf::Vector2f m_laserDestination{ 0, 0 };
+	
+	// start position of laser at base
+	sf::Vector2f m_laserStartPoint{ 0.0f, 0.0f };
+	
+	sf::Vector2f m_laserDestination{ 0.0f, 0.0f }; // destination of laser based on mouse click
+	sf::Vector2f m_laserEndPoint{ 0.0f, 0.0f }; // tip of laser, extended in update() by velocity
+	sf::Vector2f m_directionNormalised{ 0.0f, 0.0f }; // direction the laser will travel
+	sf::Vector2f m_laserVelocity{ 0.0f, 0.0f }; // laser velocity
+	float m_laserSpeed = 2.0f; // laser speed
+	
+	enum m_laserState{standby, firing};
+	m_laserState m_currentLaserState = standby;
+
 
 	sf::VertexArray m_asteroid{ sf::Lines };
+
+	
 
 };
 

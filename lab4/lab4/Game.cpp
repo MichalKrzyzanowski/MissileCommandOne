@@ -2,6 +2,7 @@
 
 #include "Game.h"
 #include <iostream>
+#include "VectorFormulas.h"
 
 
 /// <summary>
@@ -9,17 +10,19 @@
 /// pass parameters fpr sfml window, setup m_exitGame
 /// </summary>
 Game::Game() :
-	m_window{ sf::VideoMode{ 800, 600, 32 }, "SFML Game" },
+	m_window{ sf::VideoMode{ 800u, 600u, 32u }, "SFML Game" },
 	m_exitGame{ false } //when true game will exit
 {
 	setupFontAndText(); // load font 
 	setupSprite(); // load texture
-	setUpScene(m_ground, sf::Vector2f{ 0, 500 }, sf::Vector2f{ 800, 100 }); // set up ground rectangle
+	setUpScene(m_ground, sf::Vector2f{ 0.0f, 500.0f }, sf::Vector2f{ 800.0f, 100.0f }); // set up ground rectangle
 	m_ground.setFillColor(sf::Color(2, 99, 20)); // dark green color
-	setUpScene(m_base, sf::Vector2f{ 360, 440 }, sf::Vector2f{ 80, 60 }); // set up ground rectangle
+	setUpScene(m_base, sf::Vector2f{ 360.0f, 440.0f }, sf::Vector2f{ 80.0f, 60.0f }); // set up ground rectangle
 	m_base.setFillColor(sf::Color(219, 199, 52)); // golden color
-	setUpScene(m_powerBar, sf::Vector2f{ 10, 530 }, sf::Vector2f{ 200, 30 }); // set up power bar
+	setUpScene(m_powerBar, sf::Vector2f{ 10.0f, 530.0f }, sf::Vector2f{ 200.0f, 30.0f }); // set up power bar
 	m_powerBar.setFillColor(sf::Color(188, 5, 5)); // red color
+
+	m_laserStartPoint = sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2.0f), m_base.getPosition().y };
 }
 
 /// <summary>
@@ -37,7 +40,7 @@ void Game::run()
 {
 	sf::Clock clock;
 	sf::Time timeSinceLastUpdate = sf::Time::Zero;
-	sf::Time timePerFrame = sf::seconds(1.f / 60.f); // 60 fps
+	sf::Time timePerFrame = sf::seconds(1.f / 60.0f); // 60 fps
 	while (m_window.isOpen())
 	{
 		processEvents(); // as many as possible
@@ -93,13 +96,18 @@ void Game::update(sf::Time t_deltaTime)
 		m_window.close();
 	}
 
+	if (m_currentLaserState == firing)
+	{
+		animateLaser();
+	}
+
 	AsteroidProperties();
 }
 
 void Game::processMouseEvents(sf::Event t_mouseEvents)
 {
-	sf::Vertex lineStart{ sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2), m_base.getPosition().y} };
-	sf::Vertex lineEnd{};
+	//sf::Vertex lineStart{ m_laserStartPoint };
+	//sf::Vertex lineEnd{};
 	sf::Vector2i mouseClick{};
 
 	m_laser.clear();
@@ -108,13 +116,28 @@ void Game::processMouseEvents(sf::Event t_mouseEvents)
 	{
 		mouseClick = sf::Mouse::getPosition(m_window);
 		m_laserDestination = sf::Vector2f(static_cast<float>(mouseClick.x), static_cast<float>(mouseClick.y));
-		lineEnd.position = m_laserDestination;
+		m_directionNormalised = m_laserDestination - m_laserStartPoint;
+		m_directionNormalised = vectorUnitVector(m_directionNormalised);
+		m_laserVelocity = m_directionNormalised * m_laserSpeed;
+		m_laserEndPoint = m_laserStartPoint + m_laserVelocity;
+
+		m_currentLaserState = firing;
+		//lineEnd.position = m_laserDestination;
 	}
 
-	else
-	{
-		m_laser.clear();
-	}
+	//m_laser.append(lineStart);
+	//m_laser.append(lineEnd);
+}
+
+void Game::animateLaser()
+{
+	sf::Vertex lineStart{ m_laserStartPoint };
+	sf::Vertex lineEnd{};
+
+	
+	m_laserEndPoint += m_laserVelocity;
+
+	lineEnd.position = m_laserEndPoint;
 
 	m_laser.append(lineStart);
 	m_laser.append(lineEnd);
