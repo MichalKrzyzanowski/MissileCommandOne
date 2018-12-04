@@ -19,10 +19,12 @@ Game::Game() :
 	m_ground.setFillColor(sf::Color(2, 99, 20)); // dark green color
 	setUpScene(m_base, sf::Vector2f{ 360.0f, 440.0f }, sf::Vector2f{ 80.0f, 60.0f }); // set up ground rectangle
 	m_base.setFillColor(sf::Color(219, 199, 52)); // golden color
-	setUpScene(m_powerBar, sf::Vector2f{ 10.0f, 530.0f }, sf::Vector2f{ 200.0f, 30.0f }); // set up power bar
+	setUpScene(m_powerBar, sf::Vector2f{ 10.0f, 530.0f }, sf::Vector2f{ m_currentPower, 30.0f }); // set up power bar
 	m_powerBar.setFillColor(sf::Color(188, 5, 5)); // red color
 
-	m_laserStartPoint = sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2.0f), m_base.getPosition().y };
+	m_laserStartPoint = sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2.0f), m_ground.getPosition().y };
+
+	m_explosion.setFillColor(sf::Color(191u, 73u, 0u));
 }
 
 /// <summary>
@@ -78,9 +80,13 @@ void Game::processEvents()
 			}
 		}
 
-		if (sf::Event::MouseButtonPressed == nextEvent.type)
+		if (m_currentLaserState == standby)
 		{
-			processMouseEvents(nextEvent);
+			if (sf::Event::MouseButtonPressed == nextEvent.type)
+			{
+				processMouseEvents(nextEvent);
+				m_currentLaserState = firing;
+			}
 		}
 	}
 }
@@ -96,21 +102,31 @@ void Game::update(sf::Time t_deltaTime)
 		m_window.close();
 	}
 
+	if (m_currentLaserState == standby)
+	{
+		m_laser.clear();
+	}
+
 	if (m_currentLaserState == firing)
 	{
 		animateLaser();
 	}
+
+	if (m_currentLaserState == explosion)
+	{
+		m_laser.clear();
+		m_currentPower = 0.0f;
+		animateExplosion();
+	}
+
+	animatePowerBar();
 
 	AsteroidProperties();
 }
 
 void Game::processMouseEvents(sf::Event t_mouseEvents)
 {
-	//sf::Vertex lineStart{ m_laserStartPoint };
-	//sf::Vertex lineEnd{};
 	sf::Vector2i mouseClick{};
-
-	m_laser.clear();
 
 	if (sf::Mouse::Left == t_mouseEvents.mouseButton.button)
 	{
@@ -120,27 +136,72 @@ void Game::processMouseEvents(sf::Event t_mouseEvents)
 		m_directionNormalised = vectorUnitVector(m_directionNormalised);
 		m_laserVelocity = m_directionNormalised * m_laserSpeed;
 		m_laserEndPoint = m_laserStartPoint + m_laserVelocity;
-
-		m_currentLaserState = firing;
-		//lineEnd.position = m_laserDestination;
 	}
-
-	//m_laser.append(lineStart);
-	//m_laser.append(lineEnd);
 }
 
 void Game::animateLaser()
 {
 	sf::Vertex lineStart{ m_laserStartPoint };
 	sf::Vertex lineEnd{};
-
 	
-	m_laserEndPoint += m_laserVelocity;
+	if (m_laserEndPoint.y <= m_laserDestination.y)
+	{
+		std::cout << "Works!";
+		m_currentLaserState = explosion;
+	}
 
-	lineEnd.position = m_laserEndPoint;
+	else if (m_laserEndPoint.y <= m_altitude)
+	{
+		std::cout << "Works!";
+		m_currentLaserState = explosion;
+	}
 
-	m_laser.append(lineStart);
-	m_laser.append(lineEnd);
+	else
+	{
+		m_laserEndPoint += m_laserVelocity;
+
+		lineEnd.position = m_laserEndPoint;
+
+		m_laser.append(lineStart);
+		m_laser.append(lineEnd);
+	}
+}
+
+void Game::animateExplosion()
+{
+	m_explosion.setPosition(m_laserEndPoint);
+	m_explosion.setOrigin(m_explosionRadius, m_explosionRadius);
+	m_explosion.setRadius(m_explosionRadius);
+	m_explosionRadius++;
+
+	if (m_explosionRadius >= 30.0f)
+	{
+		m_explosionRadius = 0.0f;
+		m_currentLaserState = standby;
+	}
+}
+
+void Game::animatePowerBar()
+{
+	m_powerBar.setSize(sf::Vector2f{ m_currentPower, 30.0f });
+
+	if (m_currentLaserState == standby)
+	{
+		if (m_currentPower >= MAX_POWER)
+		{
+			m_currentPower = MAX_POWER;
+		}
+
+		else
+		{
+			m_currentPower += m_powerInc;
+		}
+	}
+
+	else if (m_currentLaserState == firing)
+	{
+		m_altitude = (m_window.getSize().y - m_ground.getSize().y) - m_currentPower;
+	}
 }
 
 void Game::AsteroidProperties()
@@ -170,6 +231,11 @@ void Game::render()
 	m_window.draw(m_laser);
 	m_window.draw(m_asteroid);
 	m_window.draw(m_powerBar);
+
+	if (m_currentLaserState == explosion)
+	{
+		m_window.draw(m_explosion);
+	}
 
 	m_window.display();
 }

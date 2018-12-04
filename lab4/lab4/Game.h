@@ -13,10 +13,13 @@ public:
 
 private:
 
+	// functions
 	void processEvents();
 	void update(sf::Time t_deltaTime);
 	void processMouseEvents(sf::Event t_mouseEvent);
 	void animateLaser();
+	void animateExplosion();
+	void animatePowerBar();
 	void AsteroidProperties();
 	void render();
 
@@ -24,6 +27,7 @@ private:
 	void setupSprite();
 	void setUpScene(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size);
 
+	// variables
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
 	sf::Text m_welcomeMessage; // text used for message on screen
@@ -33,8 +37,15 @@ private:
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_base;
 	sf::RectangleShape m_powerBar;
+	sf::CircleShape m_explosion;
 
 	bool m_exitGame; // control exiting game
+
+	const float MAX_POWER = 450.0f;
+	float m_currentPower = 0.0f;
+	float m_powerInc = 10.0f;
+	float m_altitude = 0.0f;
+	float m_explosionRadius = 0.0f;
 
 	sf::VertexArray m_laser{ sf::Lines };
 	
@@ -47,7 +58,7 @@ private:
 	sf::Vector2f m_laserVelocity{ 0.0f, 0.0f }; // laser velocity
 	float m_laserSpeed = 2.0f; // laser speed
 	
-	enum m_laserState{standby, firing};
+	enum m_laserState{standby, firing, explosion};
 	m_laserState m_currentLaserState = standby;
 
 
