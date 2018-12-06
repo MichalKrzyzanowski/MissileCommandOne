@@ -119,9 +119,20 @@ void Game::update(sf::Time t_deltaTime)
 		animateExplosion();
 	}
 
+	if (m_currentAsteroidState == launch)
+	{
+		//m_asteroid.clear();
+		asteroidProperties();
+		m_currentAsteroidState = flight;
+	}
+
+	if (m_currentAsteroidState == flight)
+	{
+		animateAsteroid();
+	}
+
 	animatePowerBar();
 
-	AsteroidProperties();
 }
 
 void Game::processMouseEvents(sf::Event t_mouseEvents)
@@ -146,13 +157,11 @@ void Game::animateLaser()
 	
 	if (m_laserEndPoint.y <= m_laserDestination.y)
 	{
-		std::cout << "Works!";
 		m_currentLaserState = explosion;
 	}
 
 	else if (m_laserEndPoint.y <= m_altitude)
 	{
-		std::cout << "Works!";
 		m_currentLaserState = explosion;
 	}
 
@@ -173,6 +182,12 @@ void Game::animateExplosion()
 	m_explosion.setOrigin(m_explosionRadius, m_explosionRadius);
 	m_explosion.setRadius(m_explosionRadius);
 	m_explosionRadius++;
+
+	m_explosionCollisionDistance = (m_laserEndPoint.x - m_asteroidEndPoint.x) * (m_laserEndPoint.x - m_asteroidEndPoint.x)
+		+ (m_laserEndPoint.y - m_asteroidEndPoint.y) * (m_laserEndPoint.y - m_asteroidEndPoint.y);
+	m_explosionCollisionDistance = sqrt(m_explosionCollisionDistance);
+
+	collisionDetection();
 
 	if (m_explosionRadius >= 30.0f)
 	{
@@ -204,18 +219,44 @@ void Game::animatePowerBar()
 	}
 }
 
-void Game::AsteroidProperties()
-{
-	sf::Vertex asteroidStart{};
-	sf::Vertex asteroidEnd{};
-	sf::Vector2f startPoint{200, 200};
-	sf::Vector2f endPoint{500, 500};
+void Game::asteroidProperties()
+{	
+	float randomStartPoint = rand() % m_window.getSize().x + 1.0f;
+	float randomEndPoint = rand() % m_window.getSize().x + 1.0f;
 
-	asteroidStart.position = startPoint;
-	asteroidEnd.position = endPoint;
+	m_asteroidStartPoint = sf::Vector2f{ randomStartPoint, 0.0f };
+	m_asteroidEndPoint = sf::Vector2f{ randomEndPoint, 600.0f };
+
+	m_asteroidDirectionNormalised = m_asteroidEndPoint - m_asteroidStartPoint;
+	m_asteroidDirectionNormalised = vectorUnitVector(m_asteroidDirectionNormalised);
+	m_asteroidVelocity = m_asteroidDirectionNormalised * m_asteroidSpeed;
+	m_asteroidEndPoint = m_asteroidStartPoint + m_asteroidVelocity;
+}
+
+void Game::animateAsteroid()
+{
+	sf::Vertex asteroidStart{ m_asteroidStartPoint };
+	sf::Vertex asteroidEnd{ m_asteroidEndPoint };
+
+	collisionDetection();
+
+	m_asteroidEndPoint += m_asteroidVelocity;
 
 	m_asteroid.append(asteroidStart);
 	m_asteroid.append(asteroidEnd);
+}
+
+void Game::collisionDetection()
+{
+	if (m_asteroidEndPoint.y > m_ground.getPosition().y)
+	{
+		std::cout << "Collision Detected!"; // reset position
+	}
+
+	if (m_explosionCollisionDistance < m_explosionRadius)
+	{
+		std::cout << "explosion collision detected"; // game over
+	}
 }
 
 /// <summary>

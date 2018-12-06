@@ -20,7 +20,9 @@ private:
 	void animateLaser();
 	void animateExplosion();
 	void animatePowerBar();
-	void AsteroidProperties();
+	void asteroidProperties();
+	void animateAsteroid();
+	void collisionDetection();
 	void render();
 
 	void setupFontAndText();
@@ -41,12 +43,14 @@ private:
 
 	bool m_exitGame; // control exiting game
 
-	const float MAX_POWER = 450.0f;
-	float m_currentPower = 0.0f;
-	float m_powerInc = 10.0f;
-	float m_altitude = 0.0f;
-	float m_explosionRadius = 0.0f;
+	const float MAX_POWER = 450.0f; // max power of power bar and max altitude of laser
+	float m_currentPower = 0.0f; // current power of power bar and altitude of laser
+	float m_powerInc = 10.0f; // power bar increment value
+	float m_altitude = 0.0f; // lasers altitude
+	float m_explosionRadius = 0.0f; // radius of laser explosion
 
+
+	// laser line variables
 	sf::VertexArray m_laser{ sf::Lines };
 	
 	// start position of laser at base
@@ -58,13 +62,24 @@ private:
 	sf::Vector2f m_laserVelocity{ 0.0f, 0.0f }; // laser velocity
 	float m_laserSpeed = 2.0f; // laser speed
 	
-	enum m_laserState{standby, firing, explosion};
-	m_laserState m_currentLaserState = standby;
 
-
+	// asteroid line variables
 	sf::VertexArray m_asteroid{ sf::Lines };
 
-	
+	sf::Vector2f m_asteroidStartPoint{ 0.0f, 0.0f };
+	sf::Vector2f m_asteroidEndPoint{ 0.0f, 0.0f };
+
+	sf::Vector2f m_asteroidDestination{ 0.0f , 0.0f };
+	sf::Vector2f m_asteroidDirectionNormalised{ 0.0f, 0.0f };
+	sf::Vector2f m_asteroidVelocity{ 0.0f, 0.0f };
+	float m_asteroidSpeed = 0.5f;
+	float m_explosionCollisionDistance = 0.0f; // distance between asteroid end point and explosion radius 
+
+	enum m_laserState { standby, firing, explosion };
+	m_laserState m_currentLaserState = standby;
+
+	enum m_asteroidState {launch, flight, collision};
+	m_asteroidState m_currentAsteroidState = launch;
 
 };
 
