@@ -17,9 +17,13 @@ Game::Game() :
 	setupSprite(); // load texture
 	
 	setupScene();
+	setupText();
 	m_laserStartPoint = sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2.0f), m_ground.getPosition().y };
 
-	m_explosion.setFillColor(sf::Color(191u, 73u, 0u));
+	m_explosion.setOutlineThickness(2.0f);
+	m_explosion.setOutlineColor(sf::Color(191u, 73u, 0u));
+	m_explosion.setFillColor(sf::Color(0u, 0u, 0u, 0u));
+
 
 	m_asteroidInterval = rand() % 100 + 1.0f;
 }
@@ -104,6 +108,7 @@ void Game::update(sf::Time t_deltaTime)
 		if (m_currentLaserState == standby)
 		{
 			m_laser.clear();
+			m_scoreAwarded = false;
 		}
 
 		if (m_currentLaserState == firing)
@@ -141,6 +146,10 @@ void Game::update(sf::Time t_deltaTime)
 			}
 		}
 
+		m_expBar.setSize(sf::Vector2f{ m_xp, 20.0f });
+		m_scoreText.setString("Score: " + std::to_string(m_score) + "pts");
+		m_playerLvlText.setString("Level: " + std::to_string(m_playerLvl));
+		m_scoreMultiplier.setString("Multiplier: x" + std::to_string(m_playerLvl));
 		animatePowerBar();
 	}
 }
@@ -260,15 +269,35 @@ void Game::collisionDetection()
 {
 	if (m_asteroidEndPoint.y > m_ground.getPosition().y)
 	{
-		std::cout << "Collision Detected!"; // reset position
+		std::cout << "Collision Detected!";
 		m_currentGameState = gameOver;
 	}
 
 	if (m_explosionCollisionDistance < m_explosionRadius)
 	{
-		std::cout << "explosion collision detected"; // game over
+		std::cout << "explosion collision detected";
+
+		if (!m_scoreAwarded)
+		{
+			m_score += 1 * m_playerLvl;
+			m_xp += m_playerXpGain;
+			m_scoreAwarded = true;
+		}
+
+		if (m_xp >= MAX_XP)
+		{
+			levelUp();
+		}
+
 		m_currentAsteroidState = collision;
 	}
+}
+
+void Game::levelUp()
+{
+	m_playerLvl++;
+	m_playerXpGain /= 1.1f;
+	m_xp = 0.0f;
 }
 
 /// <summary>
@@ -284,7 +313,13 @@ void Game::render()
 		m_window.draw(m_base);
 		m_window.draw(m_laser);
 		m_window.draw(m_asteroid);
+		m_window.draw(m_powerBarBackground);
 		m_window.draw(m_powerBar);
+		m_window.draw(m_expBarBackground);
+		m_window.draw(m_expBar);
+		m_window.draw(m_scoreText);
+		m_window.draw(m_scoreMultiplier);
+		m_window.draw(m_playerLvlText);
 
 		if (m_currentLaserState == explosion)
 		{
@@ -336,7 +371,10 @@ void Game::setupTextProperties(sf::Text & t_text, sf::Vector2f t_position, std::
 
 void Game::setupText()
 {
-	// setup text here
+	setupTextProperties(m_scoreText, sf::Vector2f{ 10.0f, 555.0f }, "Score: " + std::to_string(m_score) + "pts", 18);
+	setupTextProperties(m_scoreMultiplier, sf::Vector2f{ 10.0f, 575.0f }, "Multiplier: x" + std::to_string(m_playerLvl), 18);
+	setupTextProperties(m_playerLvlText, sf::Vector2f{ 648.0f, 518.0f }, "Level: " + std::to_string(m_playerLvl), 14);
+	m_playerLvlText.setFillColor(sf::Color(232, 202, 9));
 }
 
 /// <summary>
@@ -365,6 +403,13 @@ void Game::setupScene()
 	m_ground.setFillColor(sf::Color(2, 99, 20)); // dark green color
 	setupSceneProperties(m_base, sf::Vector2f{ 360.0f, 440.0f }, sf::Vector2f{ 80.0f, 60.0f }); // set up ground rectangle
 	m_base.setFillColor(sf::Color(219, 199, 52)); // golden color
-	setupSceneProperties(m_powerBar, sf::Vector2f{ 10.0f, 530.0f }, sf::Vector2f{ m_currentPower, 30.0f }); // set up power bar
+	setupSceneProperties(m_powerBar, sf::Vector2f{ 10.0f, 520.0f }, sf::Vector2f{ m_currentPower, 30.0f }); // set up power bar
 	m_powerBar.setFillColor(sf::Color(188, 5, 5)); // red color
+	setupSceneProperties(m_powerBarBackground, sf::Vector2f{ 8.0f, 518.0f }, sf::Vector2f{ 454.0f, 34.0f });
+	m_powerBarBackground.setFillColor(sf::Color::Black);
+
+	setupSceneProperties(m_expBar, sf::Vector2f{ 650.0f, 540.0f }, sf::Vector2f{ m_xp, 20.0f });
+	m_expBar.setFillColor(sf::Color(232, 202, 9));
+	setupSceneProperties(m_expBarBackground, sf::Vector2f{ 648.0f, 538.0f }, sf::Vector2f{ 104.0f, 24.0f });
+	m_expBarBackground.setFillColor(sf::Color::Black);
 }

@@ -23,6 +23,7 @@ private:
 	void asteroidProperties();
 	void animateAsteroid();
 	void collisionDetection();
+	void levelUp();
 	void render();
 
 	void setupGameOverText();
@@ -37,17 +38,28 @@ private:
 	sf::Font m_ArialBlackfont; // font used by message
 	sf::Text m_gameOverText; // text used for message on screen
 	sf::Text m_scoreText; // score Text
+	sf::Text m_scoreMultiplier; // multiplier of score gained
+	sf::Text m_playerLvlText;
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
 
 	int m_score = 0;
+	int m_playerLvl = 1;
+	float m_xp = 0.0f; // experience points earned by shooting down asteroids
+	float m_playerXpGain = 50.0f;
+
+	const float MAX_XP = 100.0f;
 
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_base;
 	sf::RectangleShape m_powerBar;
+	sf::RectangleShape m_powerBarBackground;
+	sf::RectangleShape m_expBar;
+	sf::RectangleShape m_expBarBackground;
 	sf::CircleShape m_explosion;
 
 	bool m_exitGame; // control exiting game
+	bool m_scoreAwarded{ false }; // checks if score and xp was already awarded
 
 	const float MAX_POWER = 450.0f; // max power of power bar and max altitude of laser
 	float m_currentPower = 0.0f; // current power of power bar and altitude of laser
@@ -78,7 +90,7 @@ private:
 	sf::Vector2f m_asteroidDestination{ 0.0f , 0.0f };
 	sf::Vector2f m_asteroidDirectionNormalised{ 0.0f, 0.0f };
 	sf::Vector2f m_asteroidVelocity{ 0.0f, 0.0f };
-	float m_asteroidSpeed = 14.5f;
+	float m_asteroidSpeed = 0.5f;
 	float m_explosionCollisionDistance = 0.0f; // distance between asteroid end point and explosion radius
 	float  m_asteroidInterval = 0.0f; // random interval between each asteroid launch
 	float m_asteroidIntervalCounter = 0.0f; // counter for random interval
