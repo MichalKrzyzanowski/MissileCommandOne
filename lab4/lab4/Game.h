@@ -25,16 +25,22 @@ private:
 	void collisionDetection();
 	void render();
 
-	void setupFontAndText();
+	void setupGameOverText();
+	void setupTextProperties(sf::Text & t_text, sf::Vector2f t_position, std::string t_string, int t_characterSize);
+	void setupText();
 	void setupSprite();
-	void setUpScene(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size);
+	void setupSceneProperties(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size);
+	void setupScene();
 
 	// variables
 	sf::RenderWindow m_window; // main SFML window
 	sf::Font m_ArialBlackfont; // font used by message
-	sf::Text m_welcomeMessage; // text used for message on screen
+	sf::Text m_gameOverText; // text used for message on screen
+	sf::Text m_scoreText; // score Text
 	sf::Texture m_logoTexture; // texture used for sfml logo
 	sf::Sprite m_logoSprite; // sprite used for sfml logo
+
+	int m_score = 0;
 
 	sf::RectangleShape m_ground;
 	sf::RectangleShape m_base;
@@ -72,14 +78,21 @@ private:
 	sf::Vector2f m_asteroidDestination{ 0.0f , 0.0f };
 	sf::Vector2f m_asteroidDirectionNormalised{ 0.0f, 0.0f };
 	sf::Vector2f m_asteroidVelocity{ 0.0f, 0.0f };
-	float m_asteroidSpeed = 0.5f;
-	float m_explosionCollisionDistance = 0.0f; // distance between asteroid end point and explosion radius 
+	float m_asteroidSpeed = 14.5f;
+	float m_explosionCollisionDistance = 0.0f; // distance between asteroid end point and explosion radius
+	float  m_asteroidInterval = 0.0f; // random interval between each asteroid launch
+	float m_asteroidIntervalCounter = 0.0f; // counter for random interval
 
+
+	// state machines
 	enum m_laserState { standby, firing, explosion };
 	m_laserState m_currentLaserState = standby;
 
 	enum m_asteroidState {launch, flight, collision};
 	m_asteroidState m_currentAsteroidState = launch;
+
+	enum m_gameState { gameRunning, gameOver, };
+	m_gameState m_currentGameState = gameRunning;
 
 };
 

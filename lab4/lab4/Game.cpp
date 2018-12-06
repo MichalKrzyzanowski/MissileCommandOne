@@ -13,18 +13,15 @@ Game::Game() :
 	m_window{ sf::VideoMode{ 800u, 600u, 32u }, "SFML Game" },
 	m_exitGame{ false } //when true game will exit
 {
-	setupFontAndText(); // load font 
+	setupGameOverText(); // load font 
 	setupSprite(); // load texture
-	setUpScene(m_ground, sf::Vector2f{ 0.0f, 500.0f }, sf::Vector2f{ 800.0f, 100.0f }); // set up ground rectangle
-	m_ground.setFillColor(sf::Color(2, 99, 20)); // dark green color
-	setUpScene(m_base, sf::Vector2f{ 360.0f, 440.0f }, sf::Vector2f{ 80.0f, 60.0f }); // set up ground rectangle
-	m_base.setFillColor(sf::Color(219, 199, 52)); // golden color
-	setUpScene(m_powerBar, sf::Vector2f{ 10.0f, 530.0f }, sf::Vector2f{ m_currentPower, 30.0f }); // set up power bar
-	m_powerBar.setFillColor(sf::Color(188, 5, 5)); // red color
-
+	
+	setupScene();
 	m_laserStartPoint = sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2.0f), m_ground.getPosition().y };
 
 	m_explosion.setFillColor(sf::Color(191u, 73u, 0u));
+
+	m_asteroidInterval = rand() % 100 + 1.0f;
 }
 
 /// <summary>
@@ -102,37 +99,50 @@ void Game::update(sf::Time t_deltaTime)
 		m_window.close();
 	}
 
-	if (m_currentLaserState == standby)
+	if (m_currentGameState == gameRunning)
 	{
-		m_laser.clear();
+		if (m_currentLaserState == standby)
+		{
+			m_laser.clear();
+		}
+
+		if (m_currentLaserState == firing)
+		{
+			animateLaser();
+		}
+
+		if (m_currentLaserState == explosion)
+		{
+			m_laser.clear();
+			m_currentPower = 0.0f;
+			animateExplosion();
+		}
+
+		if (m_currentAsteroidState == launch)
+		{
+			asteroidProperties();
+			m_currentAsteroidState = flight;
+		}
+
+		if (m_currentAsteroidState == flight)
+		{
+			animateAsteroid();
+		}
+
+		if (m_currentAsteroidState == collision)
+		{
+			m_asteroid.clear();
+			m_asteroidIntervalCounter++;
+			if (m_asteroidIntervalCounter > m_asteroidInterval)
+			{
+				m_currentAsteroidState = launch;
+				m_asteroidInterval = rand() % 100 + 1.0f;
+				m_asteroidIntervalCounter = 0.0f;
+			}
+		}
+
+		animatePowerBar();
 	}
-
-	if (m_currentLaserState == firing)
-	{
-		animateLaser();
-	}
-
-	if (m_currentLaserState == explosion)
-	{
-		m_laser.clear();
-		m_currentPower = 0.0f;
-		animateExplosion();
-	}
-
-	if (m_currentAsteroidState == launch)
-	{
-		//m_asteroid.clear();
-		asteroidProperties();
-		m_currentAsteroidState = flight;
-	}
-
-	if (m_currentAsteroidState == flight)
-	{
-		animateAsteroid();
-	}
-
-	animatePowerBar();
-
 }
 
 void Game::processMouseEvents(sf::Event t_mouseEvents)
@@ -251,11 +261,13 @@ void Game::collisionDetection()
 	if (m_asteroidEndPoint.y > m_ground.getPosition().y)
 	{
 		std::cout << "Collision Detected!"; // reset position
+		m_currentGameState = gameOver;
 	}
 
 	if (m_explosionCollisionDistance < m_explosionRadius)
 	{
 		std::cout << "explosion collision detected"; // game over
+		m_currentAsteroidState = collision;
 	}
 }
 
@@ -265,40 +277,66 @@ void Game::collisionDetection()
 void Game::render()
 {
 	m_window.clear();
-	//m_window.draw(m_welcomeMessage);
-	//m_window.draw(m_logoSprite);
-	m_window.draw(m_ground);
-	m_window.draw(m_base);
-	m_window.draw(m_laser);
-	m_window.draw(m_asteroid);
-	m_window.draw(m_powerBar);
 
-	if (m_currentLaserState == explosion)
+	if (m_currentGameState == !gameOver)
 	{
-		m_window.draw(m_explosion);
+		m_window.draw(m_ground);
+		m_window.draw(m_base);
+		m_window.draw(m_laser);
+		m_window.draw(m_asteroid);
+		m_window.draw(m_powerBar);
+
+		if (m_currentLaserState == explosion)
+		{
+			m_window.draw(m_explosion);
+		}
+
+		m_window.display();
 	}
 
-	m_window.display();
+	else
+	{
+		m_window.clear();
+
+		m_window.draw(m_gameOverText);
+
+		m_window.display();
+	}
 }
 
 /// <summary>
 /// load the font and setup the text message for screen
 /// </summary>
-void Game::setupFontAndText()
+void Game::setupGameOverText()
 {
 	if (!m_ArialBlackfont.loadFromFile("ASSETS\\FONTS\\ariblk.ttf"))
 	{
 		std::cout << "problem loading arial black font" << std::endl;
 	}
-	m_welcomeMessage.setFont(m_ArialBlackfont);
-	m_welcomeMessage.setString("SFML Game");
-	m_welcomeMessage.setStyle(sf::Text::Underlined | sf::Text::Italic | sf::Text::Bold);
-	m_welcomeMessage.setPosition(40.0f, 40.0f);
-	m_welcomeMessage.setCharacterSize(80);
-	m_welcomeMessage.setOutlineColor(sf::Color::Red);
-	m_welcomeMessage.setFillColor(sf::Color::Black);
-	m_welcomeMessage.setOutlineThickness(3.0f);
+	m_gameOverText.setFont(m_ArialBlackfont);
+	m_gameOverText.setString("GAME OVER!");
+	m_gameOverText.setStyle(sf::Text::Underlined | sf::Text::Italic | sf::Text::Bold);
+	m_gameOverText.setPosition(100.0f, 250.0f);
+	m_gameOverText.setCharacterSize(80);
+	m_gameOverText.setOutlineColor(sf::Color::Red);
+	m_gameOverText.setFillColor(sf::Color::Black);
+	m_gameOverText.setOutlineThickness(3.0f);
 
+}
+
+// sets up general text for use in HUD elements
+void Game::setupTextProperties(sf::Text & t_text, sf::Vector2f t_position, std::string t_string, int t_characterSize)
+{
+	t_text.setFont(m_ArialBlackfont);
+	t_text.setString(t_string);
+	t_text.setFillColor(sf::Color::White);
+	t_text.setPosition(t_position);
+	t_text.setCharacterSize(t_characterSize);
+}
+
+void Game::setupText()
+{
+	// setup text here
 }
 
 /// <summary>
@@ -315,8 +353,18 @@ void Game::setupSprite()
 	m_logoSprite.setPosition(300.0f, 180.0f);
 }
 
-void Game::setUpScene(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size)
+void Game::setupSceneProperties(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size)
 {
 	t_rectangle.setPosition(t_position);
 	t_rectangle.setSize(t_size);
+}
+
+void Game::setupScene()
+{
+	setupSceneProperties(m_ground, sf::Vector2f{ 0.0f, 500.0f }, sf::Vector2f{ 800.0f, 100.0f }); // set up ground rectangle
+	m_ground.setFillColor(sf::Color(2, 99, 20)); // dark green color
+	setupSceneProperties(m_base, sf::Vector2f{ 360.0f, 440.0f }, sf::Vector2f{ 80.0f, 60.0f }); // set up ground rectangle
+	m_base.setFillColor(sf::Color(219, 199, 52)); // golden color
+	setupSceneProperties(m_powerBar, sf::Vector2f{ 10.0f, 530.0f }, sf::Vector2f{ m_currentPower, 30.0f }); // set up power bar
+	m_powerBar.setFillColor(sf::Color(188, 5, 5)); // red color
 }
