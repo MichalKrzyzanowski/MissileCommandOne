@@ -25,12 +25,12 @@
 
 
 /// <summary>
-/// main enrtry point
+/// main entry point
 /// </summary>
 /// <returns>zero</returns>
 int main()
 {
-	srand(static_cast<unsigned>(time(NULL)));
+	srand(static_cast<unsigned>(time(NULL))); // seed of rand() function, casted into an unsigned int
 
 	Game game;
 	game.run();

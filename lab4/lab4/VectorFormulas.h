@@ -1,5 +1,5 @@
-// author Peter Lowe
-// don't edit this file
+// Author: Michal K.
+
 #ifndef VectorFormulas
 #define VectorFormulas
 

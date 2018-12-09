@@ -1,15 +1,4 @@
-/// <summary>
-/// Author: Michal K.
-/// Login: C00240696
-/// Date: 18/11/18
-/// --------------------------------------------------------------------------------
-/// Vector formulas: Vector Lenght, Vector Lenght Squared, Vector unit vector, etc.
-/// --------------------------------------------------------------------------------
-/// Estimated Time: 4 hrs
-/// Actual Time: 4 hrs
-/// Knows Bugs:
-/// --
-/// </summary>
+// Author: Michal K.
 
 #include "VectorFormulas.h"
 #include "Game.h"
