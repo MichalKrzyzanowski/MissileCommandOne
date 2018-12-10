@@ -16,25 +16,30 @@ private:
 
 	// functions
 	void processEvents();
-	void update(sf::Time t_deltaTime);
-	void processMouseEvents(sf::Event t_mouseEvent);
-	void animateLaser();
-	void animateExplosion();
-	void animatePowerBar();
-	void asteroidProperties();
-	void animateAsteroid();
-	void collisionDetection();
-	void levelUp();
-	void resetAttributes();
-	void render();
+	void update(sf::Time t_deltaTime); // Update the game world
+	void processMouseEvents(sf::Event t_mouseEvent); // checks if left mouse button has been clicked
+	void animateLaser(); // laser's journey to it's destination is animated
+	void animateExplosion(); // explosion is called to end point of laser, radius enlarged gradually
+	void animatePowerBar(); // power bar width is enlarged based on current power
+	void asteroidProperties(); // sets random start and end position of asteroid
+	void animateAsteroid(); // asteroid's journey from random start point to random end point is animated
+	void collisionDetection(); // checks for collisions
+	void levelUp(); // level up player, reduce xp gain per asteroid shot down and improved laser's speed
+	void resetAttributes(); // reset player stats such as xp, score, laser speed, etc. to default values
+	void render(); // draw the frame and then switch buffers
 
-	void setupGameOverText();
-	void setupTitleText();
+	void setupGameOverText(); // set up game over title text in game over screen
+	void setupTitleText(); // set up game over title text in game over screen
+	
+	// sets up general text for use in HUD elements
 	void setupTextProperties(sf::Text & t_text, sf::Vector2f t_position, std::string t_string, int t_characterSize);
-	void setupText();
-	void setupSprite();
+	
+	void setupText(); // gives text variables properties based on setupTextProperties function
+	
+	// sets up a rectangle shape's position and size
 	void setupSceneProperties(sf::RectangleShape & t_rectangle, sf::Vector2f t_position, sf::Vector2f t_size);
-	void setupScene();
+	
+	void setupScene(); // gives rectangle shapes properties based on setupSceneProperties function
 
 
 	// variables
@@ -103,7 +108,7 @@ private:
 	sf::Vector2f m_asteroidDestination{ 0.0f , 0.0f }; // actual destination of asteroid pre-animation
 	sf::Vector2f m_asteroidDirectionNormalised{ 0.0f, 0.0f }; // direction the asteroid will travel
 	sf::Vector2f m_asteroidVelocity{ 0.0f, 0.0f }; // asteroid speed in a direction
-	float m_asteroidSpeed = 0.2f; // speed of asteroid's animation
+	float m_asteroidSpeed = 0.4f; // speed of asteroid's animation
 	float m_explosionCollisionDistance = 0.0f; // distance between asteroid end point and explosion radius
 	float  m_asteroidInterval = 0.0f; // random interval between each asteroid launch
 	float m_asteroidIntervalCounter = 0.0f; // counter for random interval

@@ -14,9 +14,7 @@
 /// Estimated Time: 24 hrs
 /// Actual Time: 17 hrs
 /// Known Bugs:
-/// once asteroid hits ground but the laser is fired and heading to its direction, game is over as intended
-/// but once mode is chosen at the main menu, it jumps into game over screen.
-
+/// N/A
 
 #include "Game.h"
 #include <iostream>
@@ -31,18 +29,20 @@ Game::Game() :
 {
 	setupGameOverText(); // set up game over title text in game over screen
 	setupTitleText(); // set up game title text in main menu
-	setupSprite(); // load texture
 	
-	setupScene();
-	setupText();
+	setupScene(); // gives rectangle shapes properties based on setupSceneProperties function
+	setupText(); // gives text variables properties based on setupTextProperties function
+
+	// setup start position of laser
 	m_laserStartPoint = sf::Vector2f{ m_base.getPosition().x + (m_base.getSize().x / 2.0f), m_ground.getPosition().y };
 
+	// set outline thickness and change it's color, rest of the color is transparent
 	m_explosion.setOutlineThickness(2.0f);
 	m_explosion.setOutlineColor(sf::Color(191u, 73u, 0u));
 	m_explosion.setFillColor(sf::Color(0u, 0u, 0u, 0u));
 
 
-	m_asteroidInterval = rand() % 100 + 1.0f;
+	m_asteroidInterval = rand() % 100 + 1.0f; // interval between asteroid's respawn set to random number
 }
 
 
@@ -151,17 +151,18 @@ void Game::update(sf::Time t_deltaTime)
 	if (m_currentGameState == mainMenu) // if main menu is current game screen
 	{
 		resetAttributes(); // reset player stats such as xp, score, laser speed, etc. to default values
+		m_currentLaserState = standby; // laser is waiting for input
 	}
 
 	if (m_currentGameState == classicMode) // if classic mode is currently played
 	{
-		m_laserSpeed = 2.0f;
+		m_laserSpeed = 2.0f; // set laser speed to 2.0f
 	}
 
 	// if classic mode or custom mode is currently played
 	if (m_currentGameState == classicMode || m_currentGameState == customMode)
 	{
-		if (m_currentLaserState == standby)
+		if (m_currentLaserState == standby) // when laser is waiting for input
 		{
 			m_laser.clear(); // clear laser vertex array
 			m_scoreAwarded = false; // score is not awarded yet
@@ -197,7 +198,6 @@ void Game::update(sf::Time t_deltaTime)
 			if (m_asteroidIntervalCounter > m_asteroidInterval) // if counter is greater than random number
 			{
 				m_currentAsteroidState = launch; // asteroid is ready to launch
-				m_asteroidSpeed += 0.2f; // asteroid animation speed is increased
 				m_asteroidInterval = rand() % 100 + 1.0f; // interval number randomized
 				m_asteroidIntervalCounter = 0.0f; // counter reset
 			}
@@ -365,6 +365,7 @@ void Game::collisionDetection()
 	{
 		if (!m_scoreAwarded) // checks if score and xp was not yet rewarded
 		{
+			m_asteroidSpeed += 0.2f; // asteroid animation speed is increased
 			m_score += 1 * m_playerLvl; // add score to player, multiplier increases score gained per player level
 			m_xp += m_playerXpGain; // player gains xp
 			m_scoreAwarded = true; // score has been awarded
@@ -390,7 +391,7 @@ void Game::levelUp()
 	m_playerXpGain /= 1.1f; // reduced player xp gain
 	m_xp = 0.0f; // reset current player xp
 	m_powerInc++; // power bar fills up faster
-	m_laserSpeed += 0.2f; // laser speed improved
+	m_laserSpeed += 1.0f; // laser speed improved
 
 	if (m_laserSpeed >= 5.0f) // if max laser speed
 	{
@@ -549,20 +550,6 @@ void Game::setupText()
 	setupTextProperties(m_returnToMenuText, sf::Vector2f{ 100.0f, 500.0f }, "PRESS <SPACE> TO RETURN TO MAIN MENU", 24);
 	setupTextProperties(m_totalScoreText, sf::Vector2f{ 100.0f, 350.0f }, "TOTAL SCORE: " + std::to_string(m_score) + "pts", 18);
 	m_totalScoreText.setFillColor(sf::Color::Yellow);
-}
-
-/// <summary>
-/// load the texture and setup the sprite for the logo
-/// </summary>
-void Game::setupSprite()
-{
-	if (!m_logoTexture.loadFromFile("ASSETS\\IMAGES\\SFML-LOGO.png"))
-	{
-		// simple error message if previous call fails
-		std::cout << "problem loading logo" << std::endl;
-	}
-	m_logoSprite.setTexture(m_logoTexture);
-	m_logoSprite.setPosition(300.0f, 180.0f);
 }
 
 
